@@ -20,6 +20,12 @@ void	init_cub(t_cub *cub)
 	cub->map.textures[1].img = NULL;
 	cub->map.textures[2].img = NULL;
 	cub->map.textures[3].img = NULL;
+	cub->input.w = 0;
+	cub->input.a = 0;
+	cub->input.s = 0;
+	cub->input.d = 0;
+	cub->input.left = 0;
+	cub->input.right = 0;
 }
 
 void	init_map(t_map *map)

@@ -24,11 +24,34 @@ int	key_press(int keycode, t_cub *cub)
 {
 	if (keycode == KEY_ESC)
 		close_window(cub);
-	if (handle_movement_keys(keycode, cub))
-		return (0);
-	if (keycode == KEY_LEFT)
-		rotate_player(cub, -0.05);
+	else if (keycode == KEY_W || keycode == KEY_UP)
+		cub->input.w = 1;
+	else if (keycode == KEY_S || keycode == KEY_DOWN)
+		cub->input.s = 1;
+	else if (keycode == KEY_A)
+		cub->input.a = 1;
+	else if (keycode == KEY_D)
+		cub->input.d = 1;
+	else if (keycode == KEY_LEFT)
+		cub->input.left = 1;
 	else if (keycode == KEY_RIGHT)
-		rotate_player(cub, 0.05);
+		cub->input.right = 1;
+	return (0);
+}
+
+int	key_release(int keycode, t_cub *cub)
+{
+	if (keycode == KEY_W || keycode == KEY_UP)
+		cub->input.w = 0;
+	else if (keycode == KEY_S || keycode == KEY_DOWN)
+		cub->input.s = 0;
+	else if (keycode == KEY_A)
+		cub->input.a = 0;
+	else if (keycode == KEY_D)
+		cub->input.d = 0;
+	else if (keycode == KEY_LEFT)
+		cub->input.left = 0;
+	else if (keycode == KEY_RIGHT)
+		cub->input.right = 0;
 	return (0);
 }

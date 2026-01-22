@@ -16,7 +16,8 @@ int	main(int argc, char **argv)
 	init_textures(&cub);
 	init_player(&cub);
 	mlx_hook(cub.win, 17, 0, close_window, &cub);
-	mlx_key_hook(cub.win, key_press, &cub);
+	mlx_hook(cub.win, 2, 1L << 0, key_press, &cub);
+	mlx_hook(cub.win, 3, 1L << 1, key_release, &cub);
 	mlx_loop_hook(cub.mlx, render_loop, &cub);
 	mlx_loop(cub.mlx);
 	return (0);
