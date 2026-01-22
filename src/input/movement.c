@@ -30,15 +30,3 @@ void	calculate_new_position(t_cub *cub, double *new_x, double *new_y,
 	}
 }
 
-int	handle_movement_keys(int keycode, t_cub *cub)
-{
-	if (keycode == KEY_W || keycode == KEY_UP)
-		return (move_player(cub, 0.1, 0), 1);
-	else if (keycode == KEY_S || keycode == KEY_DOWN)
-		return (move_player(cub, 0.1, 1), 1);
-	else if (keycode == KEY_A)
-		return (move_player(cub, 0.1, 2), 1);
-	else if (keycode == KEY_D)
-		return (move_player(cub, 0.1, 3), 1);
-	return (0);
-}
