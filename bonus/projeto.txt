@@ -1,0 +1,2548 @@
+PROJECT="bonus"
+PURPOSE: Snapshot of real project code. Names and structure must not be inferred.
+
+STRUCTURE:
+.
+├── includes
+│   ├── cub3d_bonus.h
+│   ├── cub3d.h
+│   ├── structs_bonus.h
+│   └── structs.h
+├── Makefile
+├── projeto.sh
+├── projeto.txt
+├── src_bonus
+│   ├── bonus
+│   │   ├── animation_bonus.c
+│   │   ├── collision_bonus.c
+│   │   └── door_system_bonus.c
+│   ├── cleanup
+│   │   ├── cleanup_bonus.c
+│   │   ├── cleanup_free_bonus.c
+│   │   └── cleanup_helper_bonus.c
+│   ├── core
+│   │   ├── error_bonus.c
+│   │   └── main_bonus.c
+│   ├── init
+│   │   └── init_bonus.c
+│   ├── input
+│   │   ├── events_bonus.c
+│   │   ├── mouse_bonus.c
+│   │   ├── movement_bonus.c
+│   │   └── rotation_bonus.c
+│   ├── parsing
+│   │   ├── args_bonus.c
+│   │   ├── door_parser_bonus.c
+│   │   ├── elements_bonus.c
+│   │   ├── map_bonus.c
+│   │   ├── map_convert_bonus.c
+│   │   ├── parser_bonus.c
+│   │   ├── rgb_bonus.c
+│   │   ├── sprite_parser_bonus.c
+│   │   ├── validation_bonus.c
+│   │   ├── validation_utils_bonus.c
+│   │   ├── validation_walls_bonus.c
+│   │   └── validation_walls_utils_bonus.c
+│   ├── raycasting
+│   │   ├── dda_bonus.c
+│   │   ├── draw_bonus.c
+│   │   ├── player_bonus.c
+│   │   ├── raycast_bonus.c
+│   │   ├── sprite_bonus.c
+│   │   ├── sprite_draw_bonus.c
+│   │   └── sprite_sort_bonus.c
+│   └── rendering
+│       ├── door_bonus.c
+│       ├── minimap_bonus.c
+│       ├── pixel_bonus.c
+│       ├── render_bonus.c
+│       └── textures_bonus.c
+└── textures
+    ├── east.xpm
+    ├── north.xpm
+    ├── south.xpm
+    ├── sprite1_bonus.xpm
+    └── west.xpm
+
+CONTENT:
+file:includes/cub3d_bonus.h
+#ifndef CUB3D_BONUS_H
+# define CUB3D_BONUS_H
+
+# include "libft.h"
+# include "mlx.h"
+# include "structs_bonus.h"
+# include <fcntl.h>
+# include <math.h>
+# include <stdio.h>
+# include <sys/time.h>
+
+# define ERR_ARGS "Error\nInvalid number of arguments\n"
+# define ERR_EXT "Error\nInvalid file extension\n"
+# define ERR_FILE "Error\nCannot open file\n"
+# define ERR_MALLOC "Error\nMalloc failed\n"
+# define ON_DESTROY 17
+# define ON_KEYPRESS 2
+# define ON_MOUSEMOVE 6
+# define KEY_A 97
+# define KEY_D 100
+# define KEY_DOWN 65364
+# define KEY_ESC 65307
+# define KEY_LEFT 65361
+# define KEY_RIGHT 65363
+# define KEY_S 115
+# define KEY_UP 65362
+# define KEY_W 119
+# define KEY_E 101
+# define KEY_M 109
+# define WIN_HEIGHT 600
+# define WIN_WIDTH 800
+# define MINIMAP_SIZE 200
+# define MINIMAP_SCALE 10
+# define MINIMAP_COLOR_WALL 0x808080
+# define MINIMAP_COLOR_FLOOR 0xFFFFFF
+# define MINIMAP_COLOR_PLAYER 0xFF0000
+# define MINIMAP_COLOR_DOOR 0x8B4513
+# define COLLISION_DIST 0.3
+
+int		add_line_to_list(t_list **map_lines, char *line);
+void	calc_sprite_screen(t_sprite_calc *sc, t_sprite_draw *sd);
+void	calc_sprite_transform(t_cub *cub, t_sprite_calc *sc, t_sprite_pos *sprite);
+void	calc_step(t_cub *cub, t_ray *ray);
+void	calc_tex_coords(t_sprite_draw *sd, t_img *tex);
+void	calc_wall_height(t_cub *cub, t_ray *ray);
+void	calculate_new_position(t_cub *cub, double *new_x, double *new_y,
+			int direction);
+int		check_args(int argc, char **argv);
+int		check_collision(t_cub *cub, double new_x, double new_y);
+int		check_walls(t_map *map);
+void	cleanup_cub(t_cub *cub);
+int		cleanup_cub_return(t_cub *cub);
+void	cleanup_map_lines(t_list **map_lines);
+int		cleanup_parse_error(t_cub *cub, t_list **map_lines);
+int		close_window(t_cub *cub);
+char	**convert_list_to_array(t_list *map_lines, t_map *map);
+char	**copy_grid_padded(t_map *map);
+void	draw_ceiling(t_cub *cub, int x, int draw_start);
+void	draw_column(t_cub *cub, int x, t_ray *ray);
+void	draw_floor(t_cub *cub, int x, int draw_end);
+void	draw_sprite(t_cub *cub, t_sprite_draw *sd, t_img *tex);
+void	draw_wall(t_cub *cub, int x, t_ray *ray);
+void	error_exit(char *msg);
+void	error_exit_cleanup(t_cub *cub, char *msg);
+void	free_all_textures(t_cub *cub);
+void	free_grid(char **grid);
+void	free_map_grid(t_map *map);
+void	free_sprites(t_cub *cub);
+void	free_texture_paths(t_map *map);
+void	free_textures(t_cub *cub);
+int		handle_mouse(int x, int y, t_cub *cub);
+int		handle_movement_keys(int keycode, t_cub *cub);
+void	init_cub(t_cub *cub);
+void	init_map(t_map *map);
+void	init_player(t_cub *cub);
+void	init_ray(t_cub *cub, t_ray *ray, int x);
+void	init_textures(t_cub *cub);
+int		is_door_open(t_cub *cub, int x, int y);
+int		is_player(char c);
+int		is_valid_char(char c);
+int		key_press(int keycode, t_cub *cub);
+int		mark_adjacent_cells(t_flood_params *params, int x, int y);
+void	move_player(t_cub *cub, double move_speed, int direction);
+void	my_mlx_pixel_put(t_screen *screen, int x, int y, int color);
+int		parse_cub_file(char *file, t_cub *cub);
+int		parse_doors(t_map *map);
+int		parse_sprites(t_map *map);
+int		parse_line(char *line, t_cub *cub);
+int		parse_rgb(char *line);
+void	perform_dda(t_cub *cub, t_ray *ray);
+int		raycast(t_cub *cub);
+int		read_map(int fd, char *first_line, t_cub *cub, t_list **map_lines);
+int		read_remaining_lines(int fd, t_list **map_lines);
+int		render_loop(t_cub *cub);
+void	render_minimap(t_cub *cub);
+void	render_sprites(t_cub *cub);
+void	rotate_player(t_cub *cub, double rot_speed);
+void	select_texture(t_cub *cub, t_ray *ray);
+void	sort_sprites(t_cub *cub);
+void	toggle_door(t_cub *cub);
+void	toggle_minimap(t_cub *cub);
+int		update_animation_frame(void);
+int		validate_map(t_map *map);
+
+#endif
+---
+file:includes/cub3d.h
+#ifndef CUB3D_H
+# define CUB3D_H
+
+# include "libft.h"
+# include "mlx.h"
+# include <fcntl.h>
+# include <math.h>
+# include <stdio.h>
+# include "structs.h"
+
+# define ERR_ARGS "Error\nInvalid number of arguments\n"
+# define ERR_EXT "Error\nInvalid file extension\n"
+# define ERR_FILE "Error\nCannot open file\n"
+# define ERR_MALLOC "Error\nMalloc failed\n"
+# define ON_DESTROY 17
+# define ON_KEYPRESS 2
+# define KEY_A 97
+# define KEY_D 100
+# define KEY_DOWN 65364
+# define KEY_ESC 65307
+# define KEY_LEFT 65361
+# define KEY_RIGHT 65363
+# define KEY_S 115
+# define KEY_UP 65362
+# define KEY_W 119
+# define WIN_HEIGHT 600
+# define WIN_WIDTH 800
+
+int		add_line_to_list(t_list **map_lines, char *line);
+void	calc_step(t_cub *cub, t_ray *ray);
+void	calc_wall_height(t_cub *cub, t_ray *ray);
+void	calculate_new_position(t_cub *cub, double *new_x, double *new_y,
+			int direction);
+int		check_args(int argc, char **argv);
+int		check_walls(t_map *map);
+void	cleanup_cub(t_cub *cub);
+int		cleanup_cub_return(t_cub *cub);
+void	cleanup_map_lines(t_list **map_lines);
+int		cleanup_parse_error(t_cub *cub, t_list **map_lines);
+int		close_window(t_cub *cub);
+char	**convert_list_to_array(t_list *map_lines, t_map *map);
+char	**copy_grid_padded(t_map *map);
+void	draw_ceiling(t_cub *cub, int x, int draw_start);
+void	draw_column(t_cub *cub, int x, t_ray *ray);
+void	draw_floor(t_cub *cub, int x, int draw_end);
+void	draw_wall(t_cub *cub, int x, t_ray *ray);
+void	error_exit(char *msg);
+void	error_exit_cleanup(t_cub *cub, char *msg);
+void	free_grid(char **grid);
+int		handle_movement_keys(int keycode, t_cub *cub);
+void	init_cub(t_cub *cub);
+void	init_map(t_map *map);
+void	init_player(t_cub *cub);
+void	init_ray(t_cub *cub, t_ray *ray, int x);
+void	init_textures(t_cub *cub);
+int		is_player(char c);
+int		is_valid_char(char c);
+int		key_press(int keycode, t_cub *cub);
+int		mark_adjacent_cells(t_flood_params *params, int x, int y);
+void	move_player(t_cub *cub, double move_speed, int direction);
+void	my_mlx_pixel_put(t_screen *screen, int x, int y, int color);
+int		parse_cub_file(char *file, t_cub *cub);
+int		parse_line(char *line, t_cub *cub);
+int		parse_rgb(char *line);
+void	perform_dda(t_cub *cub, t_ray *ray);
+int		raycast(t_cub *cub);
+int		read_map(int fd, char *first_line, t_cub *cub, t_list **map_lines);
+int		read_remaining_lines(int fd, t_list **map_lines);
+int		render_loop(t_cub *cub);
+void	rotate_player(t_cub *cub, double rot_speed);
+void	select_texture(t_cub *cub, t_ray *ray);
+int		validate_map(t_map *map);
+
+#endif
+---
+file:includes/structs_bonus.h
+#ifndef STRUCTS_BONUS_H
+# define STRUCTS_BONUS_H
+
+typedef struct s_img
+{
+	void	*img;
+	char	*addr;
+	int		bpp;
+	int		line_len;
+	int		endian;
+	int		width;
+	int		height;
+}	t_img;
+
+typedef struct s_screen
+{
+	void	*img;
+	char	*addr;
+	int		bpp;
+	int		line_len;
+	int		endian;
+}	t_screen;
+
+typedef struct s_minimap
+{
+	int		enabled;
+	int		size;
+	int		scale;
+}	t_minimap;
+
+typedef struct s_door
+{
+	int		x;
+	int		y;
+	int		is_open;
+	float	open_offset;
+}	t_door;
+
+typedef struct s_map
+{
+	char		*no_texture;
+	char		*so_texture;
+	char		*we_texture;
+	char		*ea_texture;
+	int			floor_color;
+	int			ceil_color;
+	char		**grid;
+	int			width;
+	int			height;
+	int			player_x;
+	int			player_y;
+	char		player_dir;
+	t_img		textures[4];
+	t_img		sprite_frames[4];
+	t_minimap	minimap;
+	t_door		*doors;
+	int			num_doors;
+	struct s_sprite_pos	*sprites;
+	int			num_sprites;
+}	t_map;
+
+typedef struct s_sprite_pos
+{
+	double	x;
+	double	y;
+	double	dist;
+}	t_sprite_pos;
+
+typedef struct s_player
+{
+	double	pos_x;
+	double	pos_y;
+	double	dir_x;
+	double	dir_y;
+	double	plane_x;
+	double	plane_y;
+	int		last_mouse_x;
+}	t_player;
+
+typedef struct s_ray
+{
+	double	camera_x;
+	double	ray_dir_x;
+	double	ray_dir_y;
+	int		map_x;
+	int		map_y;
+	double	side_dist_x;
+	double	side_dist_y;
+	double	delta_dist_x;
+	double	delta_dist_y;
+	double	perp_wall_dist;
+	int		step_x;
+	int		step_y;
+	int		hit;
+	int		side;
+	int		line_height;
+	int		draw_start;
+	int		draw_end;
+	int		tex_num;
+	double	wall_x;
+	int		tex_x;
+	double	step;
+	double	tex_pos;
+}	t_ray;
+
+typedef struct s_cub
+{
+	void		*mlx;
+	void		*win;
+	t_map		map;
+	t_player	player;
+	t_screen	screen;
+}	t_cub;
+
+typedef struct s_flood_params
+{
+	char	**grid;
+	int		height;
+	int		width;
+}	t_flood_params;
+
+typedef struct s_sprite_calc
+{
+	double	sprite_x;
+	double	sprite_y;
+	double	inv_det;
+	double	transform_x;
+	double	transform_y;
+	int		screen_x;
+	int		height;
+	int		width;
+}	t_sprite_calc;
+
+typedef struct s_sprite_draw
+{
+	int		start_x;
+	int		end_x;
+	int		start_y;
+	int		end_y;
+	int		x;
+	int		y;
+	int		tex_x;
+	int		tex_y;
+}	t_sprite_draw;
+
+#endif
+---
+file:includes/structs.h
+#ifndef STRUCTS_H
+# define STRUCTS_H
+
+typedef struct s_img
+{
+	void	*img;
+	char	*addr;
+	int		bpp;
+	int		line_len;
+	int		endian;
+	int		width;
+	int		height;
+}	t_img;
+
+typedef struct s_screen
+{
+	void	*img;
+	char	*addr;
+	int		bpp;
+	int		line_len;
+	int		endian;
+}	t_screen;
+
+typedef struct s_map
+{
+	char	*no_texture;
+	char	*so_texture;
+	char	*we_texture;
+	char	*ea_texture;
+	int		floor_color;
+	int		ceil_color;
+	char	**grid;
+	int		width;
+	int		height;
+	int		player_x;
+	int		player_y;
+	char	player_dir;
+	t_img	textures[4];
+}	t_map;
+
+typedef struct s_player
+{
+	double	pos_x;
+	double	pos_y;
+	double	dir_x;
+	double	dir_y;
+	double	plane_x;
+	double	plane_y;
+}	t_player;
+
+typedef struct s_ray
+{
+	double	camera_x;
+	double	ray_dir_x;
+	double	ray_dir_y;
+	int		map_x;
+	int		map_y;
+	double	side_dist_x;
+	double	side_dist_y;
+	double	delta_dist_x;
+	double	delta_dist_y;
+	double	perp_wall_dist;
+	int		step_x;
+	int		step_y;
+	int		hit;
+	int		side;
+	int		line_height;
+	int		draw_start;
+	int		draw_end;
+	int		tex_num;
+	double	wall_x;
+	int		tex_x;
+	double	step;
+	double	tex_pos;
+}	t_ray;
+
+typedef struct s_cub
+{
+	void		*mlx;
+	void		*win;
+	t_map		map;
+	t_player	player;
+	t_screen	screen;
+}	t_cub;
+
+typedef struct s_flood_params
+{
+	char	**grid;
+	int		height;
+	int		width;
+}	t_flood_params;
+
+#endif
+---
+file:Makefile
+# ============================================================================ #
+#                                   COLORS                                     #
+# ============================================================================ #
+
+RED			= \033[0;31m
+GREEN		= \033[0;32m
+YELLOW		= \033[0;33m
+BLUE		= \033[0;34m
+MAGENTA		= \033[0;35m
+CYAN		= \033[0;36m
+RESET		= \033[0m
+
+# ============================================================================ #
+#                                   CONFIG                                     #
+# ============================================================================ #
+
+NAME		= cub3D
+NAME_BONUS	= cub3D_bonus
+CC			= cc
+CFLAGS		= -Wall -Wextra -Werror -g3
+RM			= rm -rf
+
+# ============================================================================ #
+#                                 DIRECTORIES                                  #
+# ============================================================================ #
+
+SRC_DIR			= src
+SRC_BONUS_DIR	= src_bonus
+OBJ_DIR			= obj
+OBJ_BONUS_DIR	= obj_bonus
+INC_DIR			= includes
+LIBFT_DIR		= libft
+MLX_DIR			= minilibx
+
+# ============================================================================ #
+#                                  LIBRARIES                                   #
+# ============================================================================ #
+
+LIBFT		= $(LIBFT_DIR)/libft.a
+MLX			= $(MLX_DIR)/libmlx_Linux.a
+
+LIBS		= -L$(LIBFT_DIR) -lft \
+			  -L$(MLX_DIR) -lmlx_Linux \
+			  -lXext -lX11 -lm
+
+INCLUDES	= -I$(INC_DIR) \
+			  -I$(LIBFT_DIR)/include \
+			  -I$(MLX_DIR)
+
+# ============================================================================ #
+#                                SOURCE FILES                                  #
+# ============================================================================ #
+
+# Arquivos MANDATORY
+SRC_FILES	= core/main.c \
+			  core/error.c \
+			  init/init.c \
+			  parsing/parser.c \
+			  parsing/args.c \
+			  parsing/elements.c \
+			  parsing/rgb.c \
+			  parsing/map.c \
+			  parsing/map_convert.c \
+			  parsing/validation.c \
+			  parsing/validation_utils.c \
+			  parsing/validation_walls.c \
+			  parsing/validation_walls_utils.c \
+			  raycasting/raycast.c \
+			  raycasting/dda.c \
+			  raycasting/draw.c \
+			  raycasting/player.c \
+			  rendering/textures.c \
+			  rendering/render.c \
+			  rendering/pixel.c \
+			  input/events.c \
+			  input/movement.c \
+			  input/rotation.c \
+			  cleanup/cleanup.c \
+			  cleanup/cleanup_helper.c
+
+# Arquivos BONUS
+SRC_BONUS_FILES	= core/main_bonus.c \
+				  core/error_bonus.c \
+				  init/init_bonus.c \
+				  parsing/parser_bonus.c \
+				  parsing/args_bonus.c \
+				  parsing/elements_bonus.c \
+				  parsing/rgb_bonus.c \
+				  parsing/map_bonus.c \
+				  parsing/map_convert_bonus.c \
+				  parsing/validation_bonus.c \
+				  parsing/validation_utils_bonus.c \
+				  parsing/validation_walls_bonus.c \
+				  parsing/validation_walls_utils_bonus.c \
+				  parsing/door_parser_bonus.c \
+				  parsing/sprite_parser_bonus.c \
+				  raycasting/raycast_bonus.c \
+				  raycasting/dda_bonus.c \
+				  raycasting/draw_bonus.c \
+				  raycasting/player_bonus.c \
+				  raycasting/sprite_bonus.c \
+				  raycasting/sprite_draw_bonus.c \
+				  raycasting/sprite_sort_bonus.c \
+				  rendering/textures_bonus.c \
+				  rendering/render_bonus.c \
+				  rendering/pixel_bonus.c \
+				  rendering/minimap_bonus.c \
+				  rendering/door_bonus.c \
+				  input/events_bonus.c \
+				  input/movement_bonus.c \
+				  input/rotation_bonus.c \
+				  input/mouse_bonus.c \
+				  cleanup/cleanup_bonus.c \
+				  cleanup/cleanup_helper_bonus.c \
+				  cleanup/cleanup_free_bonus.c \
+				  bonus/collision_bonus.c \
+				  bonus/animation_bonus.c \
+				  bonus/door_system_bonus.c
+
+SRCS		= $(addprefix $(SRC_DIR)/, $(SRC_FILES))
+OBJS		= $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
+
+SRCS_BONUS	= $(addprefix $(SRC_BONUS_DIR)/, $(SRC_BONUS_FILES))
+OBJS_BONUS	= $(patsubst $(SRC_BONUS_DIR)/%.c, $(OBJ_BONUS_DIR)/%.o, $(SRCS_BONUS))
+
+HEADERS		= $(INC_DIR)/cub3d.h \
+			  $(INC_DIR)/structs.h \
+			  $(LIBFT_DIR)/include/libft.h \
+			  $(MLX_DIR)/mlx.h
+
+HEADERS_BONUS = $(INC_DIR)/cub3d_bonus.h \
+				$(INC_DIR)/structs_bonus.h \
+				$(LIBFT_DIR)/include/libft.h \
+				$(MLX_DIR)/mlx.h
+
+# ============================================================================ #
+#                                   RULES                                      #
+# ============================================================================ #
+
+all: $(NAME)
+
+bonus: $(NAME_BONUS)
+
+$(NAME): $(LIBFT) $(MLX) $(OBJS)
+	@echo "$(CYAN)Linking $(NAME)...$(RESET)"
+	@$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(NAME)
+	@echo "$(GREEN)✓ $(NAME) compiled successfully!$(RESET)"
+
+$(NAME_BONUS): $(LIBFT) $(MLX) $(OBJS_BONUS)
+	@echo "$(CYAN)Linking $(NAME_BONUS)...$(RESET)"
+	@$(CC) $(CFLAGS) $(OBJS_BONUS) $(LIBS) -o $(NAME_BONUS)
+	@echo "$(GREEN)✓ $(NAME_BONUS) compiled successfully!$(RESET)"
+
+# Compilação dos objetos MANDATORY
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(HEADERS)
+	@mkdir -p $(dir $@)
+	@echo "$(YELLOW)Compiling: $<$(RESET)"
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+# Compilação dos objetos BONUS
+$(OBJ_BONUS_DIR)/%.o: $(SRC_BONUS_DIR)/%.c $(HEADERS_BONUS)
+	@mkdir -p $(dir $@)
+	@echo "$(YELLOW)Compiling: $<$(RESET)"
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+# Compilar libft
+$(LIBFT):
+	@echo "$(BLUE)Building libft...$(RESET)"
+	@$(MAKE) -C $(LIBFT_DIR) --no-print-directory
+	@echo "$(GREEN)✓ libft ready$(RESET)"
+
+# Compilar minilibx
+$(MLX):
+	@echo "$(BLUE)Building minilibx...$(RESET)"
+	@$(MAKE) -C $(MLX_DIR) --no-print-directory 2>/dev/null || true
+	@echo "$(GREEN)✓ minilibx ready$(RESET)"
+
+# Limpar objetos
+clean:
+	@echo "$(RED)Cleaning object files...$(RESET)"
+	@$(RM) $(OBJ_DIR) $(OBJ_BONUS_DIR)
+	@$(MAKE) -C $(LIBFT_DIR) clean --no-print-directory
+	@echo "$(GREEN)✓ Clean complete$(RESET)"
+
+# Limpar tudo
+fclean: clean
+	@echo "$(RED)Removing executables...$(RESET)"
+	@$(RM) $(NAME) $(NAME_BONUS)
+	@$(MAKE) -C $(LIBFT_DIR) fclean --no-print-directory
+	@echo "$(GREEN)✓ Full clean complete$(RESET)"
+
+# Recompilar tudo
+re: fclean all
+
+# ============================================================================ #
+#                                  PHONY                                       #
+# ============================================================================ #
+
+.PHONY: all bonus clean fclean re
+---
+file:src_bonus/core/main_bonus.c
+#include "cub3d_bonus.h"
+
+static void	init_mlx(t_cub *cub);
+static int	init_screen(t_cub *cub);
+
+int	main(int argc, char **argv)
+{
+	t_cub	cub;
+
+	init_cub(&cub);
+	if (check_args(argc, argv))
+		return (1);
+	if (parse_cub_file(argv[1], &cub))
+		return (cleanup_cub_return(&cub));
+	init_mlx(&cub);
+	init_textures(&cub);
+	init_player(&cub);
+	mlx_hook(cub.win, 17, 0, close_window, &cub);
+	mlx_hook(cub.win, 6, 1L << 6, handle_mouse, &cub);
+	mlx_key_hook(cub.win, key_press, &cub);
+	mlx_loop_hook(cub.mlx, render_loop, &cub);
+	mlx_loop(cub.mlx);
+	return (0);
+}
+
+static int	init_screen(t_cub *cub)
+{
+	cub->screen.img = mlx_new_image(cub->mlx, WIN_WIDTH, WIN_HEIGHT);
+	if (!cub->screen.img)
+		return (1);
+	cub->screen.addr = mlx_get_data_addr(cub->screen.img, &cub->screen.bpp,
+			&cub->screen.line_len, &cub->screen.endian);
+	if (!cub->screen.addr)
+		return (1);
+	return (0);
+}
+
+static void	init_mlx(t_cub *cub)
+{
+	cub->mlx = mlx_init();
+	if (!cub->mlx)
+		error_exit_cleanup(cub, "Error\nMLX Init failed\n");
+	cub->win = mlx_new_window(cub->mlx, WIN_WIDTH, WIN_HEIGHT, "cub3D");
+	if (!cub->win)
+		error_exit_cleanup(cub, "Error\nMLX Window failed\n");
+	if (init_screen(cub))
+		error_exit_cleanup(cub, "Error\nScreen buffer init failed\n");
+}
+---
+file:src_bonus/bonus/animation_bonus.c
+#include "cub3d_bonus.h"
+
+void	toggle_minimap(t_cub *cub)
+{
+	cub->map.minimap.enabled = !cub->map.minimap.enabled;
+}
+---
+file:src_bonus/bonus/collision_bonus.c
+#include "cub3d_bonus.h"
+
+static int	check_point_collision(t_cub *cub, double x, double y);
+
+int	check_collision(t_cub *cub, double new_x, double new_y)
+{
+	double	offset;
+
+	offset = COLLISION_DIST;
+	if (check_point_collision(cub, new_x + offset, new_y + offset))
+		return (1);
+	if (check_point_collision(cub, new_x - offset, new_y + offset))
+		return (1);
+	if (check_point_collision(cub, new_x + offset, new_y - offset))
+		return (1);
+	if (check_point_collision(cub, new_x - offset, new_y - offset))
+		return (1);
+	return (0);
+}
+
+static int	check_point_collision(t_cub *cub, double x, double y)
+{
+	int	map_x;
+	int	map_y;
+
+	map_x = (int)x;
+	map_y = (int)y;
+	if (map_x < 0 || map_x >= cub->map.width
+		|| map_y < 0 || map_y >= cub->map.height)
+		return (1);
+	if (cub->map.grid[map_y][map_x] == '1'
+		|| cub->map.grid[map_y][map_x] == 'D')
+		return (1);
+	return (0);
+}
+---
+file:src_bonus/bonus/door_system_bonus.c
+#include "cub3d_bonus.h"
+
+static int	get_door_at(t_cub *cub, int x, int y);
+
+void	toggle_door(t_cub *cub)
+{
+	int		check_x;
+	int		check_y;
+	int		door_idx;
+
+	check_x = (int)(cub->player.pos_x + cub->player.dir_x * 1.5);
+	check_y = (int)(cub->player.pos_y + cub->player.dir_y * 1.5);
+	if (check_x < 0 || check_x >= cub->map.width
+		|| check_y < 0 || check_y >= cub->map.height)
+		return ;
+	if (cub->map.grid[check_y][check_x] != 'D'
+		&& cub->map.grid[check_y][check_x] != 'O')
+		return ;
+	door_idx = get_door_at(cub, check_x, check_y);
+	if (door_idx >= 0)
+	{
+		cub->map.doors[door_idx].is_open = !cub->map.doors[door_idx].is_open;
+		if (cub->map.doors[door_idx].is_open)
+			cub->map.grid[check_y][check_x] = 'O';
+		else
+			cub->map.grid[check_y][check_x] = 'D';
+	}
+}
+
+static int	get_door_at(t_cub *cub, int x, int y)
+{
+	int	i;
+
+	i = -1;
+	while (++i < cub->map.num_doors)
+	{
+		if (cub->map.doors[i].x == x && cub->map.doors[i].y == y)
+			return (i);
+	}
+	return (-1);
+}
+
+int	is_door_open(t_cub *cub, int x, int y)
+{
+	int	i;
+
+	i = -1;
+	while (++i < cub->map.num_doors)
+	{
+		if (cub->map.doors[i].x == x && cub->map.doors[i].y == y)
+			return (cub->map.doors[i].is_open);
+	}
+	return (0);
+}
+---
+file:src_bonus/cleanup/cleanup_bonus.c
+#include "cub3d_bonus.h"
+
+void	cleanup_cub(t_cub *cub)
+{
+	if (cub->screen.img)
+		mlx_destroy_image(cub->mlx, cub->screen.img);
+	free_all_textures(cub);
+	free_texture_paths(&cub->map);
+	free_map_grid(&cub->map);
+	if (cub->map.doors)
+		free(cub->map.doors);
+	if (cub->map.sprites)
+		free(cub->map.sprites);
+	if (cub->win)
+		mlx_destroy_window(cub->mlx, cub->win);
+	if (cub->mlx)
+	{
+		mlx_destroy_display(cub->mlx);
+		free(cub->mlx);
+	}
+}
+
+int	cleanup_cub_return(t_cub *cub)
+{
+	cleanup_cub(cub);
+	return (1);
+}
+---
+file:src_bonus/cleanup/cleanup_free_bonus.c
+#include "cub3d_bonus.h"
+
+void	free_textures(t_cub *cub)
+{
+	int	i;
+
+	i = 0;
+	while (i < 4)
+	{
+		if (cub->map.textures[i].img)
+			mlx_destroy_image(cub->mlx, cub->map.textures[i].img);
+		i++;
+	}
+}
+
+void	free_sprites(t_cub *cub)
+{
+	if (cub->map.sprite_frames[0].img
+		&& cub->map.sprite_frames[0].img != cub->map.textures[0].img)
+		mlx_destroy_image(cub->mlx, cub->map.sprite_frames[0].img);
+}
+
+void	free_all_textures(t_cub *cub)
+{
+	free_textures(cub);
+	free_sprites(cub);
+}
+
+void	free_texture_paths(t_map *map)
+{
+	if (map->no_texture)
+	{
+		free(map->no_texture);
+		map->no_texture = NULL;
+	}
+	if (map->so_texture)
+	{
+		free(map->so_texture);
+		map->so_texture = NULL;
+	}
+	if (map->we_texture)
+	{
+		free(map->we_texture);
+		map->we_texture = NULL;
+	}
+	if (map->ea_texture)
+	{
+		free(map->ea_texture);
+		map->ea_texture = NULL;
+	}
+}
+
+void	free_map_grid(t_map *map)
+{
+	int	i;
+
+	if (!map->grid)
+		return ;
+	i = 0;
+	while (map->grid[i])
+	{
+		free(map->grid[i]);
+		i++;
+	}
+	free(map->grid);
+	map->grid = NULL;
+}
+---
+file:src_bonus/cleanup/cleanup_helper_bonus.c
+#include "cub3d_bonus.h"
+
+void	cleanup_map_lines(t_list **map_lines)
+{
+	if (map_lines && *map_lines)
+	{
+		ft_lstclear(map_lines, free);
+		*map_lines = NULL;
+	}
+}
+
+int	cleanup_parse_error(t_cub *cub, t_list **map_lines)
+{
+	cleanup_map_lines(map_lines);
+	return (cleanup_cub_return(cub));
+}
+---
+file:src_bonus/core/error_bonus.c
+#include "cub3d_bonus.h"
+
+void	error_exit(char *msg)
+{
+	ft_putstr_fd(msg, 2);
+}
+
+void	error_exit_cleanup(t_cub *cub, char *msg)
+{
+	ft_putstr_fd(msg, 2);
+	cleanup_cub(cub);
+	exit(1);
+}
+---
+file:src_bonus/init/init_bonus.c
+#include "cub3d_bonus.h"
+
+void	init_cub(t_cub *cub)
+{
+	cub->mlx = NULL;
+	cub->win = NULL;
+	cub->screen.img = NULL;
+	cub->screen.addr = NULL;
+	cub->map.no_texture = NULL;
+	cub->map.so_texture = NULL;
+	cub->map.we_texture = NULL;
+	cub->map.ea_texture = NULL;
+	cub->map.grid = NULL;
+	cub->map.width = 0;
+	cub->map.height = 0;
+	cub->map.floor_color = -1;
+	cub->map.ceil_color = -1;
+	cub->map.player_dir = 0;
+	cub->map.textures[0].img = NULL;
+	cub->map.textures[1].img = NULL;
+	cub->map.textures[2].img = NULL;
+	cub->map.textures[3].img = NULL;
+	cub->map.minimap.enabled = 1;
+	cub->map.minimap.size = MINIMAP_SIZE;
+	cub->map.minimap.scale = MINIMAP_SCALE;
+	cub->player.last_mouse_x = -1;
+}
+
+void	init_map(t_map *map)
+{
+	map->no_texture = NULL;
+	map->so_texture = NULL;
+	map->we_texture = NULL;
+	map->ea_texture = NULL;
+	map->floor_color = -1;
+	map->ceil_color = -1;
+	map->grid = NULL;
+	map->player_dir = 0;
+	map->width = 0;
+	map->height = 0;
+	map->doors = NULL;
+	map->num_doors = 0;
+}
+---
+file:src_bonus/input/events_bonus.c
+#include "cub3d_bonus.h"
+
+int	close_window(t_cub *cub)
+{
+	cleanup_cub(cub);
+	exit(0);
+	return (0);
+}
+
+void	move_player(t_cub *cub, double move_speed, int direction)
+{
+	double	new_x;
+	double	new_y;
+
+	(void)move_speed;
+	calculate_new_position(cub, &new_x, &new_y, direction);
+	if (!check_collision(cub, new_x, cub->player.pos_y))
+		cub->player.pos_x = new_x;
+	if (!check_collision(cub, cub->player.pos_x, new_y))
+		cub->player.pos_y = new_y;
+}
+
+int	key_press(int keycode, t_cub *cub)
+{
+	if (keycode == KEY_ESC)
+		close_window(cub);
+	if (handle_movement_keys(keycode, cub))
+		return (0);
+	if (keycode == KEY_LEFT)
+		rotate_player(cub, -0.05);
+	else if (keycode == KEY_RIGHT)
+		rotate_player(cub, 0.05);
+	else if (keycode == KEY_M)
+		toggle_minimap(cub);
+	else if (keycode == KEY_E)
+		toggle_door(cub);
+	return (0);
+}
+---
+file:src_bonus/input/mouse_bonus.c
+#include "cub3d_bonus.h"
+
+int	handle_mouse(int x, int y, t_cub *cub)
+{
+	int	diff_x;
+
+	(void)y;
+	diff_x = x - (WIN_WIDTH / 2);
+	if (diff_x != 0)
+		rotate_player(cub, diff_x * 0.001);
+	mlx_mouse_move(cub->mlx, cub->win, WIN_WIDTH / 2, WIN_HEIGHT / 2);
+	return (0);
+}
+---
+file:src_bonus/input/movement_bonus.c
+#include "cub3d_bonus.h"
+
+void	calculate_new_position(t_cub *cub, double *new_x, double *new_y,
+	int direction)
+{
+	double	move_speed;
+
+	move_speed = 0.1;
+	*new_x = cub->player.pos_x;
+	*new_y = cub->player.pos_y;
+	if (direction == 0)
+	{
+		*new_x += cub->player.dir_x * move_speed;
+		*new_y += cub->player.dir_y * move_speed;
+	}
+	else if (direction == 1)
+	{
+		*new_x -= cub->player.dir_x * move_speed;
+		*new_y -= cub->player.dir_y * move_speed;
+	}
+	else if (direction == 2)
+	{
+		*new_x -= cub->player.plane_x * move_speed;
+		*new_y -= cub->player.plane_y * move_speed;
+	}
+	else if (direction == 3)
+	{
+		*new_x += cub->player.plane_x * move_speed;
+		*new_y += cub->player.plane_y * move_speed;
+	}
+}
+
+int	handle_movement_keys(int keycode, t_cub *cub)
+{
+	if (keycode == KEY_W || keycode == KEY_UP)
+		return (move_player(cub, 0.1, 0), 1);
+	else if (keycode == KEY_S || keycode == KEY_DOWN)
+		return (move_player(cub, 0.1, 1), 1);
+	else if (keycode == KEY_A)
+		return (move_player(cub, 0.1, 2), 1);
+	else if (keycode == KEY_D)
+		return (move_player(cub, 0.1, 3), 1);
+	return (0);
+}
+---
+file:src_bonus/input/rotation_bonus.c
+#include "cub3d_bonus.h"
+
+void	rotate_player(t_cub *cub, double rot_speed)
+{
+	double	old_dir_x;
+	double	old_plane_x;
+
+	old_dir_x = cub->player.dir_x;
+	cub->player.dir_x = cub->player.dir_x * cos(rot_speed)
+		- cub->player.dir_y * sin(rot_speed);
+	cub->player.dir_y = old_dir_x * sin(rot_speed)
+		+ cub->player.dir_y * cos(rot_speed);
+	old_plane_x = cub->player.plane_x;
+	cub->player.plane_x = cub->player.plane_x * cos(rot_speed)
+		- cub->player.plane_y * sin(rot_speed);
+	cub->player.plane_y = old_plane_x * sin(rot_speed)
+		+ cub->player.plane_y * cos(rot_speed);
+}
+---
+file:src_bonus/parsing/args_bonus.c
+#include "cub3d_bonus.h"
+
+int	check_args(int argc, char **argv)
+{
+	size_t	len;
+
+	if (argc != 2)
+	{
+		ft_putstr_fd(ERR_ARGS, 2);
+		return (1);
+	}
+	len = ft_strlen(argv[1]);
+	if (len < 5)
+	{
+		ft_putstr_fd(ERR_EXT, 2);
+		return (1);
+	}
+	if (ft_strcmp(argv[1] + len - 4, ".cub") != 0)
+	{
+		ft_putstr_fd(ERR_EXT, 2);
+		return (1);
+	}
+	return (0);
+}
+---
+file:src_bonus/parsing/door_parser_bonus.c
+#include "cub3d_bonus.h"
+
+static int	count_doors(t_map *map);
+static void	store_door_positions(t_map *map);
+
+int	parse_doors(t_map *map)
+{
+	int	count;
+
+	count = count_doors(map);
+	if (count == 0)
+	{
+		map->doors = NULL;
+		map->num_doors = 0;
+		return (0);
+	}
+	map->doors = malloc(sizeof(t_door) * count);
+	if (!map->doors)
+		return (1);
+	map->num_doors = count;
+	store_door_positions(map);
+	return (0);
+}
+
+static int	count_doors(t_map *map)
+{
+	int	y;
+	int	x;
+	int	count;
+
+	count = 0;
+	y = -1;
+	while (++y < map->height)
+	{
+		x = -1;
+		while (++x < map->width && map->grid[y][x])
+		{
+			if (map->grid[y][x] == 'D')
+				count++;
+		}
+	}
+	return (count);
+}
+
+static void	store_door_positions(t_map *map)
+{
+	int	y;
+	int	x;
+	int	idx;
+
+	idx = 0;
+	y = -1;
+	while (++y < map->height)
+	{
+		x = -1;
+		while (++x < map->width && map->grid[y][x])
+		{
+			if (map->grid[y][x] == 'D')
+			{
+				map->doors[idx].x = x;
+				map->doors[idx].y = y;
+				map->doors[idx].is_open = 0;
+				map->doors[idx].open_offset = 0.0f;
+				idx++;
+			}
+		}
+	}
+}
+---
+file:src_bonus/parsing/elements_bonus.c
+#include "cub3d_bonus.h"
+
+static int	is_empty_line(char *line);
+static int	parse_color(char *line, int *color);
+static int	parse_texture(char *line, char **texture);
+static int	check_identifier(char *line, int i, t_cub *cub);
+
+int	parse_line(char *line, t_cub *cub)
+{
+	int	i;
+
+	i = 0;
+	if (is_empty_line(line))
+		return (0);
+	while (line[i] && ft_isspace(line[i]))
+		i++;
+	return (check_identifier(line, i, cub));
+}
+
+static int	is_empty_line(char *line)
+{
+	int	i;
+
+	i = 0;
+	while (line[i] && ft_isspace(line[i]))
+		i++;
+	return (line[i] == '\0');
+}
+
+static int	parse_texture(char *line, char **texture)
+{
+	int		i;
+	int		len;
+	int		end;
+
+	if (*texture)
+		return (ft_putstr_fd("Error\nDuplicate texture\n", 2), 1);
+	i = 0;
+	while (line[i] && ft_isspace(line[i]))
+		i++;
+	i += 2;
+	while (line[i] && ft_isspace(line[i]))
+		i++;
+	len = ft_strlen(line + i);
+	if (len > 0 && line[i + len - 1] == '\n')
+		len--;
+	end = i + len - 1;
+	while (end >= i && ft_isspace(line[end]))
+		end--;
+	len = end - i + 1;
+	*texture = ft_substr(line, i, len);
+	if (!*texture)
+		return (ft_putstr_fd(ERR_MALLOC, 2), 1);
+	return (0);
+}
+
+static int	parse_color(char *line, int *color)
+{
+	int	i;
+
+	if (*color != -1)
+		return (ft_putstr_fd("Error\nDuplicate color\n", 2), 1);
+	i = 0;
+	while (line[i] && ft_isspace(line[i]))
+		i++;
+	i++;
+	while (line[i] && ft_isspace(line[i]))
+		i++;
+	*color = parse_rgb(line + i);
+	if (*color == -1)
+		return (1);
+	return (0);
+}
+
+static int	check_identifier(char *line, int i, t_cub *cub)
+{
+	if (!ft_strncmp(line + i, "NO", 2))
+		return (parse_texture(line + i, &cub->map.no_texture));
+	if (!ft_strncmp(line + i, "SO", 2))
+		return (parse_texture(line + i, &cub->map.so_texture));
+	if (!ft_strncmp(line + i, "WE", 2))
+		return (parse_texture(line + i, &cub->map.we_texture));
+	if (!ft_strncmp(line + i, "EA", 2))
+		return (parse_texture(line + i, &cub->map.ea_texture));
+	if (!ft_strncmp(line + i, "F", 1))
+		return (parse_color(line + i, &cub->map.floor_color));
+	if (!ft_strncmp(line + i, "C", 1))
+		return (parse_color(line + i, &cub->map.ceil_color));
+	return (2);
+}
+---
+file:src_bonus/parsing/map_bonus.c
+#include "cub3d_bonus.h"
+
+static int	check_all_elements_set(t_map *map);
+
+int	read_map(int fd, char *first_line, t_cub *cub, t_list **map_lines)
+{
+	if (!check_all_elements_set(&cub->map))
+	{
+		ft_putstr_fd("Error\nMissing elements before map\n", 2);
+		return (cleanup_cub_return(cub));
+	}
+	if (add_line_to_list(map_lines, first_line))
+		return (cleanup_cub_return(cub));
+	if (read_remaining_lines(fd, map_lines))
+		return (cleanup_cub_return(cub));
+	cub->map.grid = convert_list_to_array(*map_lines, &cub->map);
+	if (!cub->map.grid)
+	{
+		ft_putstr_fd(ERR_MALLOC, 2);
+		return (cleanup_cub_return(cub));
+	}
+	return (0);
+}
+
+static int	check_all_elements_set(t_map *map)
+{
+	if (!map->no_texture || !map->so_texture || !map->we_texture
+		|| !map->ea_texture || map->floor_color == -1
+		|| map->ceil_color == -1)
+		return (0);
+	return (1);
+}
+---
+file:src_bonus/parsing/map_convert_bonus.c
+#include "cub3d_bonus.h"
+
+static void	copy_content_and_update_width(t_list *tmp, char **grid,
+				int *i, t_map *map);
+
+int	add_line_to_list(t_list **map_lines, char *line)
+{
+	t_list	*new_node;
+	char	*content;
+
+	content = ft_strdup(line);
+	if (!content)
+		return (ft_putstr_fd(ERR_MALLOC, 2), 1);
+	if (content[ft_strlen(content) - 1] == '\n')
+		content[ft_strlen(content) - 1] = '\0';
+	new_node = ft_lstnew(content);
+	if (!new_node)
+	{
+		free(content);
+		return (ft_putstr_fd(ERR_MALLOC, 2), 1);
+	}
+	ft_lstadd_back(map_lines, new_node);
+	return (0);
+}
+
+char	**convert_list_to_array(t_list *map_lines, t_map *map)
+{
+	int		size;
+	char	**grid;
+	int		i;
+	t_list	*tmp;
+
+	size = ft_lstsize(map_lines);
+	map->height = size;
+	grid = ft_calloc(size + 1, sizeof(char *));
+	if (!grid)
+		return (NULL);
+	i = 0;
+	tmp = map_lines;
+	while (tmp)
+	{
+		copy_content_and_update_width(tmp, grid, &i, map);
+		tmp = tmp->next;
+	}
+	return (grid);
+}
+
+int	read_remaining_lines(int fd, t_list **map_lines)
+{
+	char	*line;
+
+	while (1)
+	{
+		line = get_next_line(fd);
+		if (!line)
+			break ;
+		if (add_line_to_list(map_lines, line))
+		{
+			free(line);
+			return (1);
+		}
+		free(line);
+	}
+	return (0);
+}
+
+static void	copy_content_and_update_width(t_list *tmp, char **grid,
+	int *i, t_map *map)
+{
+	grid[*i] = tmp->content;
+	tmp->content = NULL;
+	if ((int)ft_strlen(grid[*i]) > map->width)
+		map->width = ft_strlen(grid[*i]);
+	(*i)++;
+}
+---
+file:src_bonus/parsing/parser_bonus.c
+#include "cub3d_bonus.h"
+
+static int	handle_parse_error(int fd, char *line);
+static int	parse_file_lines(int fd, t_cub *cub, t_list **map_lines);
+static int	process_line(int fd, char *line, t_cub *cub, t_list **map_lines);
+static int	handle_map_start(int fd, char *line, t_cub *cub,
+				t_list **map_lines);
+
+int	parse_cub_file(char *file, t_cub *cub)
+{
+	int		fd;
+	t_list	*map_lines;
+
+	map_lines = NULL;
+	init_map(&cub->map);
+	fd = open(file, O_RDONLY);
+	if (fd < 0)
+		return (ft_putstr_fd(ERR_FILE, 2), 1);
+	if (parse_file_lines(fd, cub, &map_lines))
+		return (close(fd), cleanup_parse_error(cub, &map_lines));
+	close(fd);
+	if (!cub->map.grid)
+	{
+		ft_putstr_fd("Error\nNo map found\n", 2);
+		return (cleanup_parse_error(cub, &map_lines));
+	}
+	ft_lstclear(&map_lines, free);
+	if (validate_map(&cub->map))
+		return (cleanup_cub_return(cub));
+	if (parse_doors(&cub->map))
+		return (cleanup_cub_return(cub));
+	if (parse_sprites(&cub->map))
+		return (cleanup_cub_return(cub));
+	return (0);
+}
+
+static int	handle_map_start(int fd, char *line, t_cub *cub,
+	t_list **map_lines)
+{
+	if (read_map(fd, line, cub, map_lines))
+	{
+		free(line);
+		close(fd);
+		return (1);
+	}
+	free(line);
+	return (2);
+}
+
+static int	handle_parse_error(int fd, char *line)
+{
+	free(line);
+	get_next_line(-1);
+	close(fd);
+	return (1);
+}
+
+static int	process_line(int fd, char *line, t_cub *cub, t_list **map_lines)
+{
+	int	ret;
+
+	ret = parse_line(line, cub);
+	if (ret == 1)
+		return (handle_parse_error(fd, line));
+	if (ret == 2)
+	{
+		ret = handle_map_start(fd, line, cub, map_lines);
+		if (ret == 1)
+		{
+			get_next_line(-1);
+			return (1);
+		}
+		return (2);
+	}
+	return (0);
+}
+
+static int	parse_file_lines(int fd, t_cub *cub, t_list **map_lines)
+{
+	char	*line;
+	int		ret;
+
+	while (1)
+	{
+		line = get_next_line(fd);
+		if (!line)
+			break ;
+		ret = process_line(fd, line, cub, map_lines);
+		if (ret == 1)
+			return (1);
+		if (ret == 2)
+			break ;
+		free(line);
+	}
+	return (0);
+}
+---
+file:src_bonus/parsing/rgb_bonus.c
+#include "cub3d_bonus.h"
+
+static int	validate_split(char **split);
+static void	free_split_array(char **split);
+static int	get_rgb_values(char **split, int *r, int *g, int *b);
+static int	is_valid_rgb_value(char *str);
+
+int	parse_rgb(char *line)
+{
+	int		r;
+	int		g;
+	int		b;
+	char	**split;
+
+	split = ft_split(line, ',');
+	if (!split)
+		return (ft_putstr_fd(ERR_MALLOC, 2), -1);
+	if (!validate_split(split))
+		return (-1);
+	return (get_rgb_values(split, &r, &g, &b));
+}
+
+static int	is_valid_rgb_value(char *str)
+{
+	int		i;
+	size_t	num_start;
+	size_t	num_len;
+
+	i = 0;
+	while (str[i] && ft_isspace(str[i]))
+		i++;
+	if (!str[i] || !ft_isdigit(str[i]))
+		return (0);
+	num_start = i;
+	num_len = 0;
+	while (str[i] && ft_isdigit(str[i]))
+	{
+		num_len++;
+		i++;
+	}
+	while (str[i] && ft_isspace(str[i]))
+		i++;
+	if (str[i] || num_len > 3)
+		return (0);
+	if (num_len == 3 && ft_strncmp(&str[num_start], "255", 3) > 0)
+		return (0);
+	return (1);
+}
+
+static int	get_rgb_values(char **split, int *r, int *g, int *b)
+{
+	*r = ft_atoi(split[0]);
+	*g = ft_atoi(split[1]);
+	*b = ft_atoi(split[2]);
+	free_split_array(split);
+	if (*r < 0 || *r > 255 || *g < 0 || *g > 255 || *b < 0 || *b > 255)
+		return (ft_putstr_fd("Error\nColor range must be 0-255\n", 2), -1);
+	return ((*r << 16) | (*g << 8) | *b);
+}
+
+static void	free_split_array(char **split)
+{
+	int	i;
+
+	i = -1;
+	while (split[++i])
+		free(split[i]);
+	free(split);
+}
+
+static int	validate_split(char **split)
+{
+	int	i;
+
+	i = 0;
+	while (split[i])
+		i++;
+	if (i != 3)
+	{
+		free_split_array(split);
+		return (ft_putstr_fd("Error\nInvalid color format\n", 2), 0);
+	}
+	if (!is_valid_rgb_value(split[0]) || !is_valid_rgb_value(split[1])
+		|| !is_valid_rgb_value(split[2]))
+	{
+		free_split_array(split);
+		return (ft_putstr_fd("Error\nRGB must be numeric\n", 2), 0);
+	}
+	return (1);
+}
+---
+file:src_bonus/parsing/sprite_parser_bonus.c
+#include "cub3d_bonus.h"
+
+static int	count_sprites(t_map *map);
+static void	store_sprite_positions(t_map *map);
+
+int	parse_sprites(t_map *map)
+{
+	int	count;
+
+	count = count_sprites(map);
+	if (count == 0)
+	{
+		map->sprites = NULL;
+		map->num_sprites = 0;
+		return (0);
+	}
+	map->sprites = malloc(sizeof(t_sprite_pos) * count);
+	if (!map->sprites)
+		return (1);
+	map->num_sprites = count;
+	store_sprite_positions(map);
+	return (0);
+}
+
+static int	count_sprites(t_map *map)
+{
+	int	y;
+	int	x;
+	int	count;
+
+	count = 0;
+	y = -1;
+	while (++y < map->height)
+	{
+		x = -1;
+		while (++x < map->width && map->grid[y][x])
+		{
+			if (map->grid[y][x] == 'X')
+				count++;
+		}
+	}
+	return (count);
+}
+
+static void	store_sprite_positions(t_map *map)
+{
+	int	y;
+	int	x;
+	int	idx;
+
+	idx = 0;
+	y = -1;
+	while (++y < map->height)
+	{
+		x = -1;
+		while (++x < map->width && map->grid[y][x])
+		{
+			if (map->grid[y][x] == 'X')
+			{
+				map->sprites[idx].x = x + 0.5;
+				map->sprites[idx].y = y + 0.5;
+				map->sprites[idx].dist = 0.0;
+				idx++;
+			}
+		}
+	}
+}
+---
+file:src_bonus/parsing/validation_bonus.c
+#include "cub3d_bonus.h"
+
+static int	check_chars_and_player(t_map *map);
+static int	check_player_at_position(t_map *map, int i, int j,
+				int *player_count);
+
+int	is_valid_char(char c)
+{
+	return (c == '0' || c == '1' || c == 'N' || c == 'S' || c == 'E'
+		|| c == 'W' || c == ' ' || c == 'D' || c == 'X');
+}
+
+int	is_player(char c)
+{
+	return (c == 'N' || c == 'S' || c == 'E' || c == 'W');
+}
+
+int	validate_map(t_map *map)
+{
+	if (check_chars_and_player(map))
+		return (1);
+	if (check_walls(map))
+		return (1);
+	return (0);
+}
+
+static int	check_player_at_position(t_map *map, int i, int j,
+	int *player_count)
+{
+	if (is_player(map->grid[i][j]))
+	{
+		(*player_count)++;
+		map->player_x = j;
+		map->player_y = i;
+		map->player_dir = map->grid[i][j];
+	}
+	return (0);
+}
+
+static int	check_chars_and_player(t_map *map)
+{
+	int	i;
+	int	j;
+	int	player_count;
+
+	player_count = 0;
+	i = 0;
+	while (i < map->height)
+	{
+		j = 0;
+		while (map->grid[i][j])
+		{
+			if (!is_valid_char(map->grid[i][j]))
+				return (ft_putstr_fd("Error\nInvalid character in map\n",
+						2), 1);
+			check_player_at_position(map, i, j, &player_count);
+			j++;
+		}
+		i++;
+	}
+	if (player_count != 1)
+		return (ft_putstr_fd("Error\nInvalid player count\n", 2), 1);
+	return (0);
+}
+---
+file:src_bonus/parsing/validation_utils_bonus.c
+#include "cub3d_bonus.h"
+
+static char	*allocate_and_copy_line(char *src, int width);
+
+void	free_grid(char **grid)
+{
+	int	i;
+
+	if (!grid)
+		return ;
+	i = 0;
+	while (grid[i])
+		free(grid[i++]);
+	free(grid);
+}
+
+char	**copy_grid_padded(t_map *map)
+{
+	char	**new_grid;
+	int		i;
+
+	new_grid = malloc(sizeof(char *) * (map->height + 1));
+	if (!new_grid)
+		return (NULL);
+	i = 0;
+	while (i < map->height)
+	{
+		new_grid[i] = allocate_and_copy_line(map->grid[i], map->width);
+		if (!new_grid[i])
+		{
+			while (--i >= 0)
+				free(new_grid[i]);
+			free(new_grid);
+			return (NULL);
+		}
+		i++;
+	}
+	new_grid[i] = NULL;
+	return (new_grid);
+}
+
+static char	*allocate_and_copy_line(char *src, int width)
+{
+	char	*new_line;
+	int		j;
+	int		len;
+
+	new_line = malloc(width + 1);
+	if (!new_line)
+		return (NULL);
+	ft_strlcpy(new_line, src, width + 1);
+	len = ft_strlen(src);
+	j = len;
+	while (j < width)
+		new_line[j++] = ' ';
+	new_line[j] = '\0';
+	return (new_line);
+}
+---
+file:src_bonus/parsing/validation_walls_bonus.c
+#include "cub3d_bonus.h"
+
+static int	flood_fill_scan(t_flood_params *params, int sx, int sy);
+static int	mark_neighbors(t_flood_params *params);
+static int	check_boundaries(t_flood_params *params);
+
+int	check_walls(t_map *map)
+{
+	char			**temp_grid;
+	int				ret;
+	t_flood_params	params;
+
+	temp_grid = copy_grid_padded(map);
+	if (!temp_grid)
+		return (ft_putstr_fd(ERR_MALLOC, 2), 1);
+	params.grid = temp_grid;
+	params.height = map->height;
+	params.width = map->width;
+	ret = flood_fill_scan(&params, map->player_x, map->player_y);
+	free_grid(temp_grid);
+	if (ret)
+		return (ft_putstr_fd("Error\nMap is not closed\n", 2), 1);
+	return (0);
+}
+
+static int	flood_fill_scan(t_flood_params *params, int sx, int sy)
+{
+	int	changed;
+
+	if (sx < 0 || sy < 0 || sy >= params->height || sx >= params->width)
+		return (1);
+	params->grid[sy][sx] = 'V';
+	changed = 1;
+	while (changed)
+	{
+		changed = mark_neighbors(params);
+		if (changed < 0)
+			return (1);
+	}
+	return (check_boundaries(params));
+}
+
+static int	mark_neighbors(t_flood_params *params)
+{
+	int	x;
+	int	y;
+	int	changed;
+	int	result;
+
+	changed = 0;
+	y = -1;
+	while (++y < params->height)
+	{
+		x = -1;
+		while (++x < params->width && params->grid[y][x])
+		{
+			if (params->grid[y][x] == 'V')
+			{
+				result = mark_adjacent_cells(params, x, y);
+				if (result < 0)
+					return (-1);
+				if (result > 0)
+					changed = 1;
+			}
+		}
+	}
+	return (changed);
+}
+
+static int	check_boundaries(t_flood_params *params)
+{
+	int	x;
+	int	y;
+
+	y = -1;
+	while (++y < params->height)
+	{
+		x = -1;
+		while (++x < params->width && params->grid[y][x])
+		{
+			if (params->grid[y][x] == 'V' || params->grid[y][x] == 'S')
+			{
+				if (x == 0 || y == 0 || x == params->width - 1
+					|| y == params->height - 1)
+					return (1);
+			}
+		}
+	}
+	return (0);
+}
+---
+file:src_bonus/parsing/validation_walls_utils_bonus.c
+#include "cub3d_bonus.h"
+
+static int	mark_cell(t_flood_params *params, int x, int y);
+
+static int	check_space_leaks(t_flood_params *params, int x, int y);
+
+int	mark_adjacent_cells(t_flood_params *params, int x, int y)
+{
+	int	result;
+	int	changed;
+
+	changed = 0;
+	result = mark_cell(params, x + 1, y);
+	if (result < 0)
+		return (-1);
+	changed += result;
+	result = mark_cell(params, x - 1, y);
+	if (result < 0)
+		return (-1);
+	changed += result;
+	result = mark_cell(params, x, y + 1);
+	if (result < 0)
+		return (-1);
+	changed += result;
+	result = mark_cell(params, x, y - 1);
+	if (result < 0)
+		return (-1);
+	changed += result;
+	return (changed);
+}
+
+static int	check_space_leaks(t_flood_params *params, int x, int y)
+{
+	if (x < 0 || y < 0 || y >= params->height || x >= params->width)
+		return (1);
+	if (x >= (int)ft_strlen(params->grid[y])
+		|| params->grid[y][x] == '\0')
+		return (1);
+	if (x == 0 || y == 0 || x == params->width - 1
+		|| y == params->height - 1)
+		return (1);
+	return (0);
+}
+
+static int	mark_cell(t_flood_params *params, int x, int y)
+{
+	if (x < 0 || y < 0 || y >= params->height || x >= params->width)
+		return (-1);
+	if (x >= (int)ft_strlen(params->grid[y])
+		|| params->grid[y][x] == '\0')
+		return (-1);
+	if (params->grid[y][x] == ' ')
+	{
+		if (check_space_leaks(params, x, y))
+			return (-1);
+		params->grid[y][x] = 'V';
+		return (1);
+	}
+	if (params->grid[y][x] == '1' || params->grid[y][x] == 'V')
+		return (0);
+	params->grid[y][x] = 'V';
+	return (1);
+}
+---
+file:src_bonus/raycasting/dda_bonus.c
+#include "cub3d_bonus.h"
+
+void	calc_step(t_cub *cub, t_ray *ray)
+{
+	if (ray->ray_dir_x < 0)
+	{
+		ray->step_x = -1;
+		ray->side_dist_x = (cub->player.pos_x - ray->map_x) * ray->delta_dist_x;
+	}
+	else
+	{
+		ray->step_x = 1;
+		ray->side_dist_x = (ray->map_x + 1.0 - cub->player.pos_x)
+			* ray->delta_dist_x;
+	}
+	if (ray->ray_dir_y < 0)
+	{
+		ray->step_y = -1;
+		ray->side_dist_y = (cub->player.pos_y - ray->map_y) * ray->delta_dist_y;
+	}
+	else
+	{
+		ray->step_y = 1;
+		ray->side_dist_y = (ray->map_y + 1.0 - cub->player.pos_y)
+			* ray->delta_dist_y;
+	}
+}
+
+void	perform_dda(t_cub *cub, t_ray *ray)
+{
+	char	cell;
+
+	while (ray->hit == 0)
+	{
+		if (ray->side_dist_x < ray->side_dist_y)
+		{
+			ray->side_dist_x += ray->delta_dist_x;
+			ray->map_x += ray->step_x;
+			ray->side = 0;
+		}
+		else
+		{
+			ray->side_dist_y += ray->delta_dist_y;
+			ray->map_y += ray->step_y;
+			ray->side = 1;
+		}
+		cell = cub->map.grid[ray->map_y][ray->map_x];
+		if (cell == '1')
+			ray->hit = 1;
+		else if (cell == 'D' && !is_door_open(cub, ray->map_x, ray->map_y))
+			ray->hit = 1;
+	}
+}
+
+void	select_texture(t_cub *cub, t_ray *ray)
+{
+	if (ray->side == 0)
+	{
+		if (ray->ray_dir_x > 0)
+			ray->tex_num = 3;
+		else
+			ray->tex_num = 2;
+	}
+	else
+	{
+		if (ray->ray_dir_y > 0)
+			ray->tex_num = 1;
+		else
+			ray->tex_num = 0;
+	}
+	ray->tex_x = (int)(ray->wall_x
+			* (double)cub->map.textures[ray->tex_num].width);
+	if (ray->side == 0 && ray->ray_dir_x > 0)
+		ray->tex_x = cub->map.textures[ray->tex_num].width - ray->tex_x - 1;
+	if (ray->side == 1 && ray->ray_dir_y < 0)
+		ray->tex_x = cub->map.textures[ray->tex_num].width - ray->tex_x - 1;
+}
+
+void	calc_wall_height(t_cub *cub, t_ray *ray)
+{
+	if (ray->side == 0)
+		ray->perp_wall_dist = (ray->side_dist_x - ray->delta_dist_x);
+	else
+		ray->perp_wall_dist = (ray->side_dist_y - ray->delta_dist_y);
+	ray->line_height = (int)(WIN_HEIGHT / ray->perp_wall_dist);
+	ray->draw_start = -ray->line_height / 2 + WIN_HEIGHT / 2;
+	if (ray->draw_start < 0)
+		ray->draw_start = 0;
+	ray->draw_end = ray->line_height / 2 + WIN_HEIGHT / 2;
+	if (ray->draw_end >= WIN_HEIGHT)
+		ray->draw_end = WIN_HEIGHT - 1;
+	if (ray->side == 0)
+		ray->wall_x = cub->player.pos_y + ray->perp_wall_dist * ray->ray_dir_y;
+	else
+		ray->wall_x = cub->player.pos_x + ray->perp_wall_dist * ray->ray_dir_x;
+	ray->wall_x -= floor(ray->wall_x);
+	select_texture(cub, ray);
+	ray->step = 1.0 * cub->map.textures[ray->tex_num].height / ray->line_height;
+	ray->tex_pos = (ray->draw_start - WIN_HEIGHT / 2 + ray->line_height / 2)
+		* ray->step;
+}
+
+void	init_ray(t_cub *cub, t_ray *ray, int x)
+{
+	ray->camera_x = 2 * x / (double)WIN_WIDTH - 1;
+	ray->ray_dir_x = cub->player.dir_x + cub->player.plane_x * ray->camera_x;
+	ray->ray_dir_y = cub->player.dir_y + cub->player.plane_y * ray->camera_x;
+	ray->map_x = (int)cub->player.pos_x;
+	ray->map_y = (int)cub->player.pos_y;
+	ray->delta_dist_x = fabs(1 / ray->ray_dir_x);
+	ray->delta_dist_y = fabs(1 / ray->ray_dir_y);
+	ray->hit = 0;
+}
+---
+file:src_bonus/raycasting/draw_bonus.c
+#include "cub3d_bonus.h"
+
+void	draw_ceiling(t_cub *cub, int x, int draw_start)
+{
+	int	y;
+
+	y = 0;
+	while (y < draw_start)
+	{
+		my_mlx_pixel_put(&cub->screen, x, y, cub->map.ceil_color);
+		y++;
+	}
+}
+
+void	draw_floor(t_cub *cub, int x, int draw_end)
+{
+	int	y;
+
+	y = draw_end;
+	while (y < WIN_HEIGHT)
+	{
+		my_mlx_pixel_put(&cub->screen, x, y, cub->map.floor_color);
+		y++;
+	}
+}
+
+void	draw_wall(t_cub *cub, int x, t_ray *ray)
+{
+	int		y;
+	int		color;
+	int		tex_y;
+	t_img	*tex;
+	char	*dst;
+
+	tex = &cub->map.textures[ray->tex_num];
+	y = ray->draw_start;
+	while (y < ray->draw_end)
+	{
+		tex_y = (int)ray->tex_pos & (tex->height - 1);
+		ray->tex_pos += ray->step;
+		dst = tex->addr + (tex_y * tex->line_len + ray->tex_x * (tex->bpp / 8));
+		color = *(unsigned int *)dst;
+		my_mlx_pixel_put(&cub->screen, x, y, color);
+		y++;
+	}
+}
+
+void	draw_column(t_cub *cub, int x, t_ray *ray)
+{
+	draw_ceiling(cub, x, ray->draw_start);
+	draw_wall(cub, x, ray);
+	draw_floor(cub, x, ray->draw_end);
+}
+---
+file:src_bonus/raycasting/player_bonus.c
+#include "cub3d_bonus.h"
+
+static void	set_north_direction(t_player *player);
+static void	set_south_direction(t_player *player);
+static void	set_east_direction(t_player *player);
+static void	set_west_direction(t_player *player);
+
+void	init_player(t_cub *cub)
+{
+	cub->player.pos_x = cub->map.player_x + 0.5;
+	cub->player.pos_y = cub->map.player_y + 0.5;
+	cub->player.dir_x = 0;
+	cub->player.dir_y = 0;
+	cub->player.plane_x = 0;
+	cub->player.plane_y = 0;
+	if (cub->map.player_dir == 'N')
+		set_north_direction(&cub->player);
+	else if (cub->map.player_dir == 'S')
+		set_south_direction(&cub->player);
+	else if (cub->map.player_dir == 'E')
+		set_east_direction(&cub->player);
+	else if (cub->map.player_dir == 'W')
+		set_west_direction(&cub->player);
+}
+
+static void	set_north_direction(t_player *player)
+{
+	player->dir_y = -1;
+	player->plane_x = 0.66;
+}
+
+static void	set_south_direction(t_player *player)
+{
+	player->dir_y = 1;
+	player->plane_x = -0.66;
+}
+
+static void	set_east_direction(t_player *player)
+{
+	player->dir_x = 1;
+	player->plane_y = 0.66;
+}
+
+static void	set_west_direction(t_player *player)
+{
+	player->dir_x = -1;
+	player->plane_y = -0.66;
+}
+---
+file:src_bonus/raycasting/raycast_bonus.c
+#include "cub3d_bonus.h"
+
+int	raycast(t_cub *cub)
+{
+	int		x;
+	t_ray	ray;
+
+	x = 0;
+	while (x < WIN_WIDTH)
+	{
+		init_ray(cub, &ray, x);
+		calc_step(cub, &ray);
+		perform_dda(cub, &ray);
+		calc_wall_height(cub, &ray);
+		draw_column(cub, x, &ray);
+		x++;
+	}
+	return (0);
+}
+---
+file:src_bonus/raycasting/sprite_bonus.c
+#include "cub3d_bonus.h"
+
+void	calc_sprite_transform(t_cub *cub, t_sprite_calc *sc,
+			t_sprite_pos *sprite)
+{
+	sc->sprite_x = sprite->x - cub->player.pos_x;
+	sc->sprite_y = sprite->y - cub->player.pos_y;
+	sc->inv_det = 1.0 / (cub->player.plane_x * cub->player.dir_y
+			- cub->player.dir_x * cub->player.plane_y);
+	sc->transform_x = sc->inv_det * (cub->player.dir_y * sc->sprite_x
+			- cub->player.dir_x * sc->sprite_y);
+	sc->transform_y = sc->inv_det * (-cub->player.plane_y * sc->sprite_x
+			+ cub->player.plane_x * sc->sprite_y);
+	sc->screen_x = (int)((WIN_WIDTH / 2) * (1 + sc->transform_x
+				/ sc->transform_y));
+	sc->height = abs((int)(WIN_HEIGHT / sc->transform_y));
+	sc->width = abs((int)(WIN_HEIGHT / sc->transform_y));
+}
+
+void	calc_sprite_screen(t_sprite_calc *sc, t_sprite_draw *sd)
+{
+	sd->start_y = -sc->height / 2 + WIN_HEIGHT / 2;
+	if (sd->start_y < 0)
+		sd->start_y = 0;
+	sd->end_y = sc->height / 2 + WIN_HEIGHT / 2;
+	if (sd->end_y >= WIN_HEIGHT)
+		sd->end_y = WIN_HEIGHT - 1;
+	sd->start_x = -sc->width / 2 + sc->screen_x;
+	if (sd->start_x < 0)
+		sd->start_x = 0;
+	sd->end_x = sc->width / 2 + sc->screen_x;
+	if (sd->end_x >= WIN_WIDTH)
+		sd->end_x = WIN_WIDTH - 1;
+}
+
+int	update_animation_frame(void)
+{
+	static struct timeval	last_time;
+	static int				frame;
+	struct timeval			curr_time;
+	long					ms;
+
+	gettimeofday(&curr_time, NULL);
+	ms = (curr_time.tv_sec * 1000 + curr_time.tv_usec / 1000)
+		- (last_time.tv_sec * 1000 + last_time.tv_usec / 1000);
+	if (ms > 200)
+	{
+		frame = (frame + 1) % 4;
+		last_time = curr_time;
+	}
+	return (frame);
+}
+---
+file:src_bonus/raycasting/sprite_draw_bonus.c
+#include "cub3d_bonus.h"
+
+static void	put_sprite_pixel(t_cub *cub, t_img *tex, t_sprite_draw *sd);
+
+void	render_sprites(t_cub *cub)
+{
+	t_sprite_calc	sc;
+	t_sprite_draw	sd;
+	t_img			*tex;
+	int				i;
+
+	sort_sprites(cub);
+	i = 0;
+	while (i < cub->map.num_sprites)
+	{
+		calc_sprite_transform(cub, &sc, &cub->map.sprites[i]);
+		if (sc.transform_y > 0)
+		{
+			calc_sprite_screen(&sc, &sd);
+			tex = &cub->map.sprite_frames[update_animation_frame()];
+			draw_sprite(cub, &sd, tex);
+		}
+		i++;
+	}
+}
+
+void	calc_tex_coords(t_sprite_draw *sd, t_img *tex)
+{
+	int	sprite_width;
+	int	sprite_height;
+
+	sprite_width = sd->end_x - sd->start_x;
+	sprite_height = sd->end_y - sd->start_y;
+	sd->tex_x = (sd->x - sd->start_x) * tex->width / sprite_width;
+	sd->tex_y = (sd->y - sd->start_y) * tex->height / sprite_height;
+}
+
+void	draw_sprite(t_cub *cub, t_sprite_draw *sd, t_img *tex)
+{
+	sd->x = sd->start_x;
+	while (sd->x < sd->end_x)
+	{
+		sd->y = sd->start_y;
+		while (sd->y < sd->end_y)
+		{
+			calc_tex_coords(sd, tex);
+			put_sprite_pixel(cub, tex, sd);
+			sd->y++;
+		}
+		sd->x++;
+	}
+}
+
+static void	put_sprite_pixel(t_cub *cub, t_img *tex, t_sprite_draw *sd)
+{
+	char	*dst;
+	int		color;
+
+	if (sd->tex_y < 0 || sd->tex_y >= tex->height
+		|| sd->tex_x < 0 || sd->tex_x >= tex->width)
+		return ;
+	dst = tex->addr + (sd->tex_y * tex->line_len
+			+ sd->tex_x * (tex->bpp / 8));
+	color = *(unsigned int *)dst;
+	if ((color & 0x00FFFFFF) != 0)
+		my_mlx_pixel_put(&cub->screen, sd->x, sd->y, color);
+}
+---
+file:src_bonus/raycasting/sprite_sort_bonus.c
+#include "cub3d_bonus.h"
+
+static void	sort_sprites_dist(t_cub *cub)
+{
+	int	i;
+
+	i = 0;
+	while (i < cub->map.num_sprites)
+	{
+		cub->map.sprites[i].dist = ((cub->player.pos_x - cub->map.sprites[i].x)
+				* (cub->player.pos_x - cub->map.sprites[i].x)
+				+ (cub->player.pos_y - cub->map.sprites[i].y)
+				* (cub->player.pos_y - cub->map.sprites[i].y));
+		i++;
+	}
+}
+
+void	sort_sprites(t_cub *cub)
+{
+	int				i;
+	int				j;
+	t_sprite_pos	tmp;
+
+	sort_sprites_dist(cub);
+	i = -1;
+	while (++i < cub->map.num_sprites - 1)
+	{
+		j = i;
+		while (++j < cub->map.num_sprites)
+		{
+			if (cub->map.sprites[i].dist < cub->map.sprites[j].dist)
+			{
+				tmp = cub->map.sprites[i];
+				cub->map.sprites[i] = cub->map.sprites[j];
+				cub->map.sprites[j] = tmp;
+			}
+		}
+	}
+}
+---
+file:src_bonus/rendering/door_bonus.c
+#include "cub3d_bonus.h"
+
+// Placeholder para rendering de portas (implementar depois se quiser)
+---
+file:src_bonus/rendering/minimap_bonus.c
+#include "cub3d_bonus.h"
+
+static void	draw_minimap_pixel(t_cub *cub, int x, int y, int color);
+static void	draw_minimap_tile(t_cub *cub, int mx, int my, char tile);
+static void	draw_player_on_minimap(t_cub *cub);
+
+void	render_minimap(t_cub *cub)
+{
+	int	map_y;
+	int	map_x;
+
+	if (!cub->map.minimap.enabled)
+		return ;
+	map_y = -1;
+	while (++map_y < cub->map.height)
+	{
+		map_x = -1;
+		while (++map_x < cub->map.width)
+		{
+			if (map_x * cub->map.minimap.scale >= MINIMAP_SIZE)
+				break ;
+			if (map_y * cub->map.minimap.scale >= MINIMAP_SIZE)
+				break ;
+			draw_minimap_tile(cub, map_x, map_y, cub->map.grid[map_y][map_x]);
+		}
+	}
+	draw_player_on_minimap(cub);
+}
+
+static void	draw_minimap_tile(t_cub *cub, int mx, int my, char tile)
+{
+	int	screen_x;
+	int	screen_y;
+	int	color;
+	int	i;
+	int	j;
+
+	if (tile == '1')
+		color = MINIMAP_COLOR_WALL;
+	else if (tile == '0' || is_player(tile) || tile == 'O')
+		color = MINIMAP_COLOR_FLOOR;
+	else if (tile == 'D')
+		color = MINIMAP_COLOR_DOOR;
+	else
+		color = 0x000000;
+	screen_x = mx * cub->map.minimap.scale;
+	screen_y = my * cub->map.minimap.scale;
+	i = -1;
+	while (++i < cub->map.minimap.scale)
+	{
+		j = -1;
+		while (++j < cub->map.minimap.scale)
+			draw_minimap_pixel(cub, screen_x + i, screen_y + j, color);
+	}
+}
+
+static void	draw_player_on_minimap(t_cub *cub)
+{
+	int	px;
+	int	py;
+	int	i;
+	int	j;
+
+	px = (int)(cub->player.pos_x * cub->map.minimap.scale);
+	py = (int)(cub->player.pos_y * cub->map.minimap.scale);
+	i = -2;
+	while (++i <= 2)
+	{
+		j = -2;
+		while (++j <= 2)
+			draw_minimap_pixel(cub, px + i, py + j, MINIMAP_COLOR_PLAYER);
+	}
+}
+
+static void	draw_minimap_pixel(t_cub *cub, int x, int y, int color)
+{
+	if (x >= 0 && x < MINIMAP_SIZE && y >= 0 && y < MINIMAP_SIZE)
+		my_mlx_pixel_put(&cub->screen, x, y, color);
+}
+---
+file:src_bonus/rendering/pixel_bonus.c
+#include "cub3d_bonus.h"
+
+void	my_mlx_pixel_put(t_screen *screen, int x, int y, int color)
+{
+	char	*dst;
+
+	if (x < 0 || x >= WIN_WIDTH || y < 0 || y >= WIN_HEIGHT)
+		return ;
+	dst = screen->addr + (y * screen->line_len + x * (screen->bpp / 8));
+	*(unsigned int *)dst = color;
+}
+---
+file:src_bonus/rendering/render_bonus.c
+#include "cub3d_bonus.h"
+
+int	render_loop(t_cub *cub)
+{
+	raycast(cub);
+	render_sprites(cub);
+	render_minimap(cub);
+	mlx_put_image_to_window(cub->mlx, cub->win, cub->screen.img, 0, 0);
+	return (0);
+}
+---
+file:src_bonus/rendering/textures_bonus.c
+#include "cub3d_bonus.h"
+
+static void	load_texture(t_cub *cub, int idx, char *path);
+static void	load_sprite_frames(t_cub *cub);
+
+void	init_textures(t_cub *cub)
+{
+	load_texture(cub, 0, cub->map.no_texture);
+	load_texture(cub, 1, cub->map.so_texture);
+	load_texture(cub, 2, cub->map.we_texture);
+	load_texture(cub, 3, cub->map.ea_texture);
+	load_sprite_frames(cub);
+}
+
+static void	load_texture(t_cub *cub, int idx, char *path)
+{
+	t_img	*tex;
+
+	tex = &cub->map.textures[idx];
+	tex->img = mlx_xpm_file_to_image(cub->mlx, path, &tex->width, &tex->height);
+	if (!tex->img)
+		error_exit_cleanup(cub, "Error\nFailed to load texture\n");
+	tex->addr = mlx_get_data_addr(tex->img, &tex->bpp,
+			&tex->line_len, &tex->endian);
+}
+
+static void	load_sprite_frames(t_cub *cub)
+{
+	t_img	*sprite;
+
+	sprite = &cub->map.sprite_frames[0];
+	sprite->img = mlx_xpm_file_to_image(cub->mlx,
+			"./textures/sprite1.xpm", &sprite->width, &sprite->height);
+	if (!sprite->img)
+	{
+		cub->map.sprite_frames[0] = cub->map.textures[0];
+		cub->map.sprite_frames[1] = cub->map.textures[1];
+		cub->map.sprite_frames[2] = cub->map.textures[2];
+		cub->map.sprite_frames[3] = cub->map.textures[3];
+		return ;
+	}
+	sprite->addr = mlx_get_data_addr(sprite->img, &sprite->bpp,
+			&sprite->line_len, &sprite->endian);
+	cub->map.sprite_frames[1] = cub->map.sprite_frames[0];
+	cub->map.sprite_frames[2] = cub->map.sprite_frames[0];
+	cub->map.sprite_frames[3] = cub->map.sprite_frames[0];
+}
+---
