@@ -70,5 +70,6 @@ int		render_loop(t_cub *cub);
 void	rotate_player(t_cub *cub, double rot_speed);
 void	select_texture(t_cub *cub, t_ray *ray);
 int		validate_map(t_map *map);
+int		key_release(int keycode, t_cub *cub);
 
 #endif
